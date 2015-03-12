@@ -233,8 +233,9 @@ static inline int64_t cf_atomic64_add(cf_atomic64 *a, int64_t b) {
 #ifdef MARCH_x86_64
 
 static inline int64_t cf_atomic64_add(cf_atomic64 *a, int64_t b) {
-uint64_t cur;
+	int64_t i = b;
 #ifdef __hpux
+	uint64_t cur;
 	cur = cf_atomic64_get(*a);
 	b = cur;
 	//printf("64 bit -> before add [*a] = [%ld], [b] = [%ld]\n",*a,b);
