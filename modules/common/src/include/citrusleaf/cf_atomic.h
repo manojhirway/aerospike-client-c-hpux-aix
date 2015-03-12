@@ -45,7 +45,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <citrusleaf/cf_arch.h>
-#ifndef __PPC__
+#ifdef __hpux
 #include <atomic.h>
 #endif
 
