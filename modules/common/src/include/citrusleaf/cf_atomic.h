@@ -373,8 +373,8 @@ static inline int32_t cf_atomic32_add(cf_atomic32 *a, int32_t b){
 static inline int32_t cf_atomic32_add(cf_atomic32 *a, int32_t b)
 {
 	int32_t i = b;
-	uint32_t cur;
 #if defined(__hpux)
+	uint32_t cur;
 	cur = cf_atomic32_get(*a);
 	b = cur;
 	//printf("32 bit -> before add [*a] = [%d], [b] = [%d]\n",*a,b);
