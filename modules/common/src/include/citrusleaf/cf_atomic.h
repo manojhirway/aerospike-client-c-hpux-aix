@@ -238,7 +238,6 @@ static inline int64_t cf_atomic64_add(cf_atomic64 *a, int64_t b) {
 	uint64_t cur;
 	cur = cf_atomic64_get(*a);
 	b = cur;
-	//printf("64 bit -> before add [*a] = [%ld], [b] = [%ld]\n",*a,b);
 	for(;;) {
 		if ( i > 0 ) {
 			atomic_inc_64(&cur);
@@ -251,15 +250,25 @@ static inline int64_t cf_atomic64_add(cf_atomic64 *a, int64_t b) {
 		if ( i == 0 ) break;
 	}
 	*a = cur;
-	//printf("64 bit -> after add [*a] = [%ld], [b] = [%ld]\n",*a,b);
         return(*a);
 #elif defined(__PPC__)
-// Code yet to be put here
+	__asm__ __volatile__ ("sync;"
+				"L_%=:"
+				 	"lwarx %0, 0, %1;"
+					"add %0, %0, %2;"
+					"stwcx. %0, 0, %1;"
+					"bne L_%=;"
+					"isync;" 
+					: "=&r" (i)
+					: "r" (a), "r" (b) 
+					: "cc", "memory"
+				);
+	return(i);
 #else
-	// __asm__ __volatile__ ("lock; xaddq %0, %1" : "+r" (b), "+m" (*a) : : "memory");
-	__asm__ __volatile__ ("addq %0, %1" : "+r" (b), "+m" (*a) : : "memory");
-#endif
+	__asm__ __volatile__ ("lock; xaddq %0, %1" : "+r" (b), "+m" (*a) : : "memory");
 	return(b + i);
+#endif
+
 }
 
 #define cf_atomic64_cas_m(_a, _b, _x) ({ \
@@ -373,11 +382,11 @@ static inline int32_t cf_atomic32_add(cf_atomic32 *a, int32_t b){
 static inline int32_t cf_atomic32_add(cf_atomic32 *a, int32_t b)
 {
 	int32_t i = b;
+	
 #if defined(__hpux)
 	uint32_t cur;
 	cur = cf_atomic32_get(*a);
 	b = cur;
-	//printf("32 bit -> before add [*a] = [%d], [b] = [%d]\n",*a,b);
 	for(;;) {
 		if ( i > 0 ) {
 			atomic_inc_32(&cur);
@@ -390,7 +399,6 @@ static inline int32_t cf_atomic32_add(cf_atomic32 *a, int32_t b)
 		if ( i == 0 ) break;
 	}
 	*a = cur;
-	//printf("32 bit -> after add [*a] = [%d], [b] = [%d]\n",*a,b);
 	return(*a);
 #elif defined(__PPC__)
 	__asm__ __volatile__ ("sync;"
